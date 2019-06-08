@@ -1,56 +1,49 @@
 use std::fmt;
 
-pub struct Clock(i32, i32);
+pub struct Clock {
+    minutes: i32,
+}
 
 impl Clock {
     pub fn new(hours: i32, minutes: i32) -> Self {
-        let hours = match hours {
-            h if h > 0 => h + minutes / 60,
-            h if h > -23 => 24 + (h + minutes / 60),
-            h => (24 + (h + minutes / 60)) * -1,
-        };
-        let minutes = minutes % 60;
-
-        Clock(hours, minutes)
+        let minutes = hours * 60 + minutes;
+        Clock { minutes: minutes }
     }
 
     pub fn add_minutes(&self, minutes: i32) -> Self {
-        let hours: i32 = minutes / 60 + self.0;
-        let minutes: i32 = minutes % 60 + self.1;
-
-        let new_hours = hours + minutes / 60;
-        let new_minutes = minutes % 60;
-
-        Clock(new_hours, new_minutes)
-    }
-
-    pub fn hour_digits(&self) -> i32 {
-        match self {
-            Clock(h, _) if h > &24 => h % 24,
-            Clock(h, _) if h > &12 => 24 - h,
-            Clock(h, _) => *h,
+        Clock {
+            minutes: self.minutes + minutes,
         }
     }
 
-    pub fn minute_digits(&self) -> i32 {
-        match self {
-            Clock(_, m) if m > &60 => m % 60,
-            Clock(_, m) => *m,
-        }
+    pub fn to_hours(&self) -> i32 {
+        (self.minutes / 60) % 24
     }
 
-    pub fn to_digits(&self) -> (i32, i32) {
-        match self {
-            Clock(h, m) if h > &24 => (h % 24, *m),
-            Clock(h, m) if h > &12 => (24 - h, *m),
-            Clock(h, m) => (*h, *m),
+    pub fn to_minutes(&self) -> i32 {
+        let hours = self.minutes as f32 / 60.0;
+        let minutes_left = hours - hours.floor();
+
+        let minutes = minutes_left * 60.0;
+
+        minutes.round() as i32
+    }
+
+    pub fn to_time(&self) -> (i32, i32) {
+        let mut hours = self.to_hours();
+        let minutes = self.to_minutes();
+
+        if hours < 0 {
+            hours = 23 + hours;
         }
+
+        (hours, minutes)
     }
 }
 
 impl fmt::Display for Clock {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let (hours, minutes) = self.to_digits();
+        let (hours, minutes) = self.to_time();
         write!(
             f,
             "{}:{}",
@@ -62,16 +55,12 @@ impl fmt::Display for Clock {
 
 impl PartialEq for Clock {
     fn eq(&self, other: &Self) -> bool {
-        match self.to_digits() {
-            (h, m) if m == other.minute_digits() && h == other.hour_digits() => true,
-            _ => false,
-        }
+        self.to_time() == other.to_time()
     }
 }
 
 impl fmt::Debug for Clock {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let (hours, minutes) = self.to_digits();
-        write!(f, "Clock {{ hours: {}, minutes: {} }}", hours, minutes)
+        write!(f, "Clock {{ {} }}", self.to_string())
     }
 }
