@@ -7,8 +7,7 @@ pub struct Clock {
 impl Clock {
     pub fn new(hours: i32, minutes: i32) -> Self {
         const TWENTY_FOUR_HOURS: i32 = 24 * 60;
-        let days_in_hours = hours / 24 + 1;
-        let minutes = (hours * 60) + minutes + (TWENTY_FOUR_HOURS * days_in_hours);
+        let minutes = (hours * 60) + minutes + TWENTY_FOUR_HOURS;
         Clock { minutes: minutes }
     }
 
@@ -20,16 +19,20 @@ impl Clock {
 
     pub fn to_time(&self) -> (i32, i32) {
         let mut hour = (self.minutes / 60) % 24;
+
         let minutes = {
             let hours = self.minutes as f32 / 60.0;
             let minutes_left = hours - hours.floor();
 
-            (minutes_left * 60.0).round()
-        } as i32;
+            let result = minutes_left * 60.0;
 
-        // test_negative_hour_and_minutes_both_roll_over
+            println!("{}", result);
+
+            result.round() as i32
+        };
+
         if hour < 0 {
-            hour = 23 + hour;
+            hour = 24 + hour;
         }
 
         (hour, minutes)
