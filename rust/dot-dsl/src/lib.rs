@@ -41,12 +41,9 @@ pub mod graph {
             }
         }
 
-        pub fn with_nodes(&self, nodes: &'a Vec<graph_items::node::Node>) -> Self {
-            Graph {
-                attrs: self.attrs.to_vec(),
-                edges: self.edges.to_vec(),
-                nodes: [&self.nodes[..], &nodes[..]].concat(),
-            }
+        pub fn with_nodes(&'a mut self, nodes: &'a Vec<graph_items::node::Node>) -> &'a mut Self {
+            self.nodes.extend(nodes.to_vec());
+            self
         }
     }
 }
