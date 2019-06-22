@@ -1,38 +1,66 @@
 pub mod graph {
+    use std::collections::HashMap;
+
     pub mod graph_items {
         pub mod node {
+            use std::collections::HashMap;
+
             #[derive(Clone, Debug, PartialEq)]
-            pub struct Node<'a> {
-                message: &'a str,
-                attrs: Vec<super::attr::Attr>,
+            pub struct Node {
+                name: String,
+                attrs: HashMap<String, String>,
             }
 
-            impl<'a> Node<'a> {
-                pub fn new(message: &'a str) -> Self {
+            impl Node {
+                pub fn new(name: &str) -> Self {
                     Node {
-                        message,
-                        attrs: vec![],
+                        name: name.to_string(),
+                        attrs: HashMap::new(),
                     }
                 }
 
-                pub fn with_attrs(&'a mut self, attrs: &'a Vec<super::attr::Attr>) -> &'a mut Self {
-                    self.attrs.extend(attrs.to_vec());
+                pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
+                    for attr in attrs.iter() {
+                        self.attrs.insert(attr.0.to_string(), attr.1.to_string());
+                    }
                     self
+                }
+
+                pub fn name(&self) -> &str {
+                    self.name.as_str()
+                }
+
+                pub fn get_attr(&self, attr: &str) -> Option<&str> {
+                    self.attrs.get(attr).map(|s| s.as_str())
                 }
             }
 
         }
 
         pub mod edge {
-            #[derive(Clone)]
-            pub struct Edge<'a> {
-                to: &'a str,
-                from: &'a str,
+            use std::collections::HashMap;
+
+            #[derive(Clone, Debug, PartialEq)]
+            pub struct Edge {
+                from: String,
+                to: String,
+                attrs: HashMap<String, String>,
             }
 
-            impl<'a> Edge<'a> {
-                pub fn new(to: &'a str, from: &'a str) -> Self {
-                    Edge { to, from }
+            impl Edge {
+                pub fn new(from: &str, to: &str) -> Self {
+                    Edge {
+                        from: from.to_string(),
+                        to: to.to_string(),
+                        attrs: HashMap::new(),
+                    }
+                }
+
+                pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
+                    for attr in attrs.iter() {
+                        self.attrs.insert(attr.0.to_string(), attr.1.to_string());
+                    }
+                    self
                 }
             }
 
@@ -46,24 +74,40 @@ pub mod graph {
 
     }
 
-    pub struct Graph<'a> {
-        pub nodes: Vec<graph_items::node::Node<'a>>,
-        pub edges: Vec<graph_items::edge::Edge<'a>>,
-        pub attrs: Vec<graph_items::attr::Attr>,
+    pub struct Graph {
+        pub nodes: Vec<graph_items::node::Node>,
+        pub edges: Vec<graph_items::edge::Edge>,
+        pub attrs: HashMap<String, String>,
     }
 
-    impl<'a> Graph<'a> {
+    impl Graph {
         pub fn new() -> Self {
             Graph {
                 nodes: vec![],
                 edges: vec![],
-                attrs: vec![],
+                attrs: HashMap::new(),
             }
         }
 
-        pub fn with_nodes(&'a mut self, nodes: &'a Vec<graph_items::node::Node>) -> &'a mut Self {
+        pub fn with_nodes(mut self, nodes: &Vec<graph_items::node::Node>) -> Self {
             self.nodes.extend(nodes.to_vec());
             self
+        }
+
+        pub fn with_edges(mut self, edges: &Vec<graph_items::edge::Edge>) -> Self {
+            self.edges.extend(edges.to_vec());
+            self
+        }
+
+        pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
+            for attr in attrs.iter() {
+                self.attrs.insert(attr.0.to_string(), attr.1.to_string());
+            }
+            self
+        }
+
+        pub fn get_node(self, name: &str) -> Option<graph_items::node::Node> {
+            self.nodes.iter().find(|&node| node.name() == name).cloned()
         }
     }
 }
